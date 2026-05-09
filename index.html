@@ -599,10 +599,10 @@
 
 <script>
 // ─── Config (hardcoded) ───────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://kvzeyiblxggdysplctkb.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_9zmWK7Tyew5XoNBSuJNC3w_wP0WzYbW';
+const SUPABASE_URL = 'https://fllaaohuqvuylxpnoeql.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_AHCURQ7_x7l9pw_JrqbCtw_KWgNa2WO';
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycbySkcbzUw6EiKRnajZVu4lBka3VLygJRC2Wu-s0cIzRMGmnsIdaLfMCUnKnjb6_nigLMA/exec';
-const GROQ_PROXY_URL = `${SUPABASE_URL}/functions/v1/quick-task`;
+const GROQ_PROXY_URL = `${SUPABASE_URL}/functions/v1/groq_proxy`;
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let links = JSON.parse(localStorage.getItem('ll_links') || '[]');
@@ -670,46 +670,74 @@ async function enrichWithAI() {
   btn.textContent = '⏳';
 
   try {
-    let title = '', summary = '', suggestCat = '', suggestTags = [];
-
-    const catIds = categories.map(c => c.id).join('|');
-    const prompt = `Analyze this URL and respond ONLY with a JSON object (no markdown, no extra text):
-URL: ${url}
-
-Return: {"title":"page title guess from URL","summary":"2 sentence summary of what this page likely contains","category":"one of: ${catIds}","tags":["3","to","5","relevant","tags"]}`;
-
+    // Step 1: fetch real page content via og_proxy
+    let ogImage = '', ogTitle = '', bodyText = '', ogDesc = '';
     try {
-      const res = await fetch(GROQ_PROXY_URL, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/og_proxy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          max_tokens: 400,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        body: JSON.stringify({ url })
       });
       const data = await res.json();
-      const raw = data.choices?.[0]?.message?.content || '{}';
-      const clean = raw.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
-      title = parsed.title || '';
-      summary = parsed.summary || '';
-      suggestCat = parsed.category || '';
-      suggestTags = parsed.tags || [];
-    } catch(e) {
-      // Fallback: extract from URL
-      try {
-        const domain = new URL(url).hostname.replace('www.','');
-        const path = new URL(url).pathname.split('/').filter(Boolean).join(' › ');
-        title = path ? `${domain} › ${path}` : domain;
-        summary = `Link from ${domain}`;
-      } catch(e2) { title = url; }
+      ogImage = data.ogImage || '';
+      ogTitle = data.ogTitle || '';
+      ogDesc  = data.ogDesc  || '';
+      bodyText = data.bodyText || '';
+    } catch(e) {}
+
+    // Pre-fill title from OG if empty
+    if (ogTitle && !document.getElementById('title-input').value.trim()) {
+      document.getElementById('title-input').value = ogTitle;
     }
 
+    // Step 2: send content to Groq for real summary + category + tags
+    const catIds = categories.map(c => c.id).join('|');
+    const context = [
+      ogTitle   ? `Title: ${ogTitle}` : '',
+      ogDesc    ? `Description: ${ogDesc}` : '',
+      bodyText  ? `Content: ${bodyText}` : `URL: ${url}`,
+    ].filter(Boolean).join('\n');
+
+    const prompt = `You are helping a user save a useful link. Analyze the content below and respond ONLY with a JSON object (no markdown, no extra text).
+
+${context}
+
+Return:
+{
+  "title": "clean readable title (use the real title, not the URL)",
+  "summary": "2-3 sentence summary of what this page contains. Be specific about the actual content.",
+  "category": "one of: ${catIds}",
+  "tags": ["3 to 5 relevant tags"]
+}`;
+
+    const res = await fetch(GROQ_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content || '{}';
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+
+    const title   = parsed.title    || ogTitle || url;
+    const summary = parsed.summary  || ogDesc  || '';
+    const suggestCat  = parsed.category || '';
+    const suggestTags = parsed.tags || [];
+
+    // Update title field
     if (title) document.getElementById('title-input').value = title;
 
+    // Show AI block
     document.getElementById('ai-title').textContent = title;
     document.getElementById('ai-summary').textContent = summary || 'No summary available';
+
+    // Store ogImage for use when saving
+    document.getElementById('ai-block').dataset.ogImage = ogImage;
+
     const sugWrap = document.getElementById('ai-suggestions');
     sugWrap.innerHTML = '';
 
@@ -733,9 +761,19 @@ Return: {"title":"page title guess from URL","summary":"2 sentence summary of wh
       sugWrap.appendChild(t);
     }
 
+    // Show OG image preview in AI block if available
+    if (ogImage) {
+      const img = document.createElement('img');
+      img.src = ogImage;
+      img.style.cssText = 'width:100%;border-radius:8px;margin-top:10px;max-height:160px;object-fit:cover;';
+      img.onerror = () => img.remove();
+      sugWrap.appendChild(img);
+    }
+
     document.getElementById('ai-block').style.display = 'block';
   } catch(e) {
-    toast('AI enrichment failed');
+    toast('Enrichment failed — check console');
+    console.error(e);
   }
   btn.disabled = false;
   btn.textContent = '✦ Enrich';
@@ -885,25 +923,29 @@ async function saveLink() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saving…';
 
-  // Fetch OG data via Supabase og_proxy (server-side, spoofs Twitterbot)
-  let ogImage = '';
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/og_proxy`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-      body: JSON.stringify({ url })
-    });
-    const data = await res.json();
-    ogImage = data.ogImage || '';
-    if (data.ogTitle && !document.getElementById('title-input').value.trim()) {
-      document.getElementById('title-input').value = data.ogTitle;
-    }
-  } catch(e) {}
+  // Reuse ogImage from Enrich if already run, otherwise fetch fresh
+  const aiBlock = document.getElementById('ai-block');
+  let ogImage = aiBlock.dataset.ogImage || '';
+
+  if (!ogImage) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/og_proxy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      ogImage = data.ogImage || '';
+      if (data.ogTitle && !document.getElementById('title-input').value.trim()) {
+        document.getElementById('title-input').value = data.ogTitle;
+      }
+    } catch(e) {}
+  }
 
   const link = {
     id: Date.now(),
     url,
-    title: title || url,
+    title: document.getElementById('title-input').value.trim() || title || url,
     note: document.getElementById('note-input').value.trim(),
     category: selectedCat || 'general',
     tags: [...currentTags],
@@ -925,7 +967,9 @@ function resetAddForm() {
   document.getElementById('title-input').value = '';
   document.getElementById('note-input').value = '';
   document.getElementById('tag-input').value = '';
-  document.getElementById('ai-block').style.display = 'none';
+  const aiBlock = document.getElementById('ai-block');
+  aiBlock.style.display = 'none';
+  aiBlock.dataset.ogImage = '';
   currentTags = [];
   selectedCat = '';
   renderCatChips();
