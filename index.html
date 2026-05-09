@@ -15,11 +15,6 @@
     --accent: #1e5c28;
     --accent-soft: #c8e8cc;
     --white: #ffffff;
-    --study: #e4f0ed; --study-text: #1a4a40;
-    --job: #e4eef8; --job-text: #1a3560;
-    --hobby: #ede9f5; --hobby-text: #3a2060;
-    --life: #fdeee4; --life-text: #5a2c10;
-    --general: #f0eeea; --general-text: #3a3530;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -43,7 +38,6 @@
     font-size: 28px;
     letter-spacing: -0.5px;
   }
-  .header-dot { color: var(--accent); }
   .header-sub { font-size: 13px; color: var(--muted); margin-left: auto; }
   /* Tabs */
   .tabs {
@@ -106,11 +100,6 @@
     color: var(--muted);
     transition: all 0.15s;
   }
-  .cat-chip.sel-study { background: var(--study); border-color: var(--study); color: var(--study-text); }
-  .cat-chip.sel-job { background: var(--job); border-color: var(--job); color: var(--job-text); }
-  .cat-chip.sel-hobby { background: var(--hobby); border-color: var(--hobby); color: var(--hobby-text); }
-  .cat-chip.sel-life { background: var(--life); border-color: var(--life); color: var(--life-text); }
-  .cat-chip.sel-general { background: var(--general); border-color: var(--faint); color: var(--general-text); }
   /* Tags */
   .tag-input-wrap { position: relative; }
   .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -263,11 +252,6 @@
     font-size: 11px;
     font-weight: 600;
   }
-  .badge-study { background: var(--study); color: var(--study-text); }
-  .badge-job { background: var(--job); color: var(--job-text); }
-  .badge-hobby { background: var(--hobby); color: var(--hobby-text); }
-  .badge-life { background: var(--life); color: var(--life-text); }
-  .badge-general { background: var(--general); color: var(--general-text); }
   .tag-mini {
     background: var(--paper);
     border: 1px solid var(--faint);
@@ -367,35 +351,6 @@
     gap: 5px;
   }
   .sync-btn:hover { background: var(--faint); }
-  /* Settings */
-  .settings-row {
-    display: flex;
-    align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--faint);
-    gap: 12px;
-  }
-  .settings-row:last-child { border-bottom: none; }
-  .settings-row label { font-size: 13px; font-weight: 500; flex: 1; }
-  .settings-row .settings-sub { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
-  .settings-row input[type="text"] {
-    border: 1.5px solid var(--faint);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-family: 'DM Sans', sans-serif;
-    background: var(--white);
-    color: var(--ink);
-    width: 100%;
-    outline: none;
-    margin-top: 6px;
-  }
-  .section-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 19px;
-    margin-bottom: 16px;
-    color: var(--ink);
-  }
   /* Spinner */
   .spinner {
     width: 18px; height: 18px;
@@ -425,21 +380,6 @@
     white-space: nowrap;
   }
   .toast.show { opacity: 1; }
-  /* Count badge */
-  .count-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent);
-    color: white;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    margin-left: 4px;
-  }
   .groq-hint { font-size: 11px; color: #b5b0a8; margin-top: 6px; }
   /* Category manage modal */
   .modal-backdrop {
@@ -544,19 +484,6 @@
     margin-bottom: 10px;
     display: block;
     background: var(--faint);
-  }
-  .link-thumb-wrap { margin-bottom: 10px; }
-  .link-thumb-placeholder {
-    width: 100%;
-    height: 80px;
-    border-radius: 8px;
-    background: var(--faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    margin-bottom: 10px;
-    opacity: 0.5;
   }
 </style>
 </head>
@@ -672,10 +599,10 @@
 
 <script>
 // ─── Config (hardcoded) ───────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://kvzeyiblxggdysplctkb.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_9zmWK7Tyew5XoNBSuJNC3w_wP0WzYbW';
+const SUPABASE_URL = 'https://fllaaohuqvuylxpnoeql.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_AHCURQ7_x7l9pw_JrqbCtw_KWgNa2WO';
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycbySkcbzUw6EiKRnajZVu4lBka3VLygJRC2Wu-s0cIzRMGmnsIdaLfMCUnKnjb6_nigLMA/exec';
-const GROQ_PROXY_URL = `${SUPABASE_URL}/functions/v1/quick-task`;
+const GROQ_PROXY_URL = `${SUPABASE_URL}/functions/v1/groq_proxy`;
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let links = JSON.parse(localStorage.getItem('ll_links') || '[]');
@@ -731,23 +658,8 @@ function showTab(t) {
 }
 
 // ─── Add Tab ──────────────────────────────────────────────────────────────────
-let urlDebounce = null;
 function onUrlInput() {
-  clearTimeout(urlDebounce);
   document.getElementById('ai-block').style.display = 'none';
-  urlDebounce = setTimeout(() => {
-    const url = document.getElementById('url-input').value.trim();
-    if (url && url.startsWith('http')) tryFavicon(url);
-  }, 600);
-}
-
-function tryFavicon(url) {
-  try {
-    const domain = new URL(url).hostname;
-    if (!document.getElementById('title-input').value) {
-      document.getElementById('title-input').placeholder = domain;
-    }
-  } catch(e) {}
 }
 
 async function enrichWithAI() {
@@ -802,9 +714,9 @@ Return: {"title":"page title guess from URL","summary":"2 sentence summary of wh
     sugWrap.innerHTML = '';
 
     if (suggestCat) {
-      const catColors = { study:'badge-study', job:'badge-job', hobby:'badge-hobby', life:'badge-life', general:'badge-general' };
+      const cat = getCatById(suggestCat);
       const s = document.createElement('span');
-      s.innerHTML = `Category: <button class="ai-cat-chip ${catColors[suggestCat]||''}" onclick="applyCatSuggestion('${suggestCat}')">${suggestCat}</button>`;
+      s.innerHTML = `Category: <button class="ai-cat-chip" style="background:${cat.color};color:${cat.textColor};border-color:${cat.color}" onclick="applyCatSuggestion('${suggestCat}')">${cat.emoji} ${cat.label}</button>`;
       sugWrap.appendChild(s);
     }
     if (suggestTags.length) {
@@ -848,10 +760,7 @@ function renderCatChips() {
   if (!row) return;
   row.innerHTML = categories.map(c => {
     const isSel = selectedCat === c.id;
-    const bg = isSel ? c.color : '';
-    const col = isSel ? c.textColor : '';
-    const border = isSel ? c.color : '';
-    return `<button class="cat-chip${isSel ? ' sel-dyn' : ''}" data-cat="${c.id}" onclick="selectCatById('${c.id}')"
+    return `<button class="cat-chip" data-cat="${c.id}" onclick="selectCatById('${c.id}')"
       style="${isSel ? `background:${c.color};border-color:${c.color};color:${c.textColor}` : ''}"
     >${c.emoji} ${c.label}</button>`;
   }).join('');
@@ -976,20 +885,18 @@ async function saveLink() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Saving…';
 
-  // Try to fetch OG image
+  // Fetch OG data via Supabase og_proxy (server-side, spoofs Twitterbot)
   let ogImage = '';
   try {
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/og_proxy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ url })
+    });
     const data = await res.json();
-    const html = data.contents || '';
-    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    if (ogMatch) ogImage = ogMatch[1];
-    if (!ogImage) {
-      const twitterMatch = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-                        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
-      if (twitterMatch) ogImage = twitterMatch[1];
+    ogImage = data.ogImage || '';
+    if (data.ogTitle && !document.getElementById('title-input').value.trim()) {
+      document.getElementById('title-input').value = data.ogTitle;
     }
   } catch(e) {}
 
