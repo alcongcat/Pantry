@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pantry</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #75B883;
+    --card: #85c492;
+    --ink: #0f0e0d;
+    --muted: #1e4a2a;
+    --faint: #62a870;
+    --accent: #1e5c28;
+    --accent-soft: #c8e8cc;
+    --white: #ffffff;
+    --study: #e4f0ed; --study-text: #1a4a40;
+    --job: #e4eef8; --job-text: #1a3560;
+    --hobby: #ede9f5; --hobby-text: #3a2060;
+    --life: #fdeee4; --life-text: #5a2c10;
+    --general: #f0eeea; --general-text: #3a3530;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+  /* Header */
+  .header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+  }
+  .header-dot { color: var(--accent); }
+  .header-sub { font-size: 13px; color: var(--muted); margin-left: auto; }
+  /* Tabs */
+  .tabs {
+    display: flex;
+    padding: 16px 20px 0;
+    gap: 4px;
+    border-bottom: 1.5px solid var(--faint);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    padding: 8px 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1.5px;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  /* Panels */
+  .panel { display: none; padding: 20px; }
+  .panel.active { display: block; }
+  /* Add panel */
+  .url-input-wrap {
+    background: var(--white);
+    border: 1.5px solid var(--faint);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .url-input-wrap label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.6px; text-transform: uppercase; display: block; margin-bottom: 8px; }
+  .url-input-wrap input, .url-input-wrap textarea, .url-input-wrap select {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    resize: none;
+  }
+  .url-input-wrap input::placeholder, .url-input-wrap textarea::placeholder { color: #b5b0a8; }
+  /* Category row */
+  .cat-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cat-chip {
+    border: 1.5px solid var(--faint);
+    background: var(--white);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .cat-chip.sel-study { background: var(--study); border-color: var(--study); color: var(--study-text); }
+  .cat-chip.sel-job { background: var(--job); border-color: var(--job); color: var(--job-text); }
+  .cat-chip.sel-hobby { background: var(--hobby); border-color: var(--hobby); color: var(--hobby-text); }
+  .cat-chip.sel-life { background: var(--life); border-color: var(--life); color: var(--life-text); }
+  .cat-chip.sel-general { background: var(--general); border-color: var(--faint); color: var(--general-text); }
+  /* Tags */
+  .tag-input-wrap { position: relative; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag-pill {
+    background: var(--paper);
+    border: 1px solid var(--faint);
+    border-radius: 20px;
+    padding: 3px 10px 3px 10px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .tag-pill span.remove { cursor: pointer; font-size: 14px; color: #b5b0a8; line-height: 1; }
+  /* AI block */
+  .ai-block {
+    background: var(--accent-soft);
+    border: 1.5px solid #e8c4b0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  .ai-block .ai-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .ai-block .ai-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .ai-block .ai-summary { color: var(--muted); line-height: 1.5; }
+  .ai-block .ai-suggest { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .ai-block .ai-suggest span { font-size: 11px; color: var(--muted); }
+  .ai-block .ai-tag-chip {
+    background: white;
+    border: 1px solid #e8c4b0;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .ai-block .ai-cat-chip {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+  }
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:disabled { opacity: 0.5; }
+  .btn-secondary {
+    background: #ffffff;
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: var(--accent-soft); }
+  /* Library */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1.5px solid var(--faint);
+    border-radius: 10px;
+    padding: 0 14px;
+    margin-bottom: 14px;
+    gap: 8px;
+  }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 11px 0;
+  }
+  .search-bar svg { color: var(--muted); flex-shrink: 0; }
+  .filter-row { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    border: 1.5px solid var(--faint);
+    background: var(--white);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .filter-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  /* Link card */
+  .link-card {
+    background: var(--card);
+    border: 1px solid var(--faint);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .link-card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .favicon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--faint);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .favicon-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .link-card-info { flex: 1; min-width: 0; }
+  .link-card-title { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.35; margin-bottom: 2px; }
+  .link-card-domain { font-size: 12px; color: #9e988f; }
+  .link-card-note { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+  .link-card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .cat-badge {
+    border-radius: 20px;
+    padding: 2px 9px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-study { background: var(--study); color: var(--study-text); }
+  .badge-job { background: var(--job); color: var(--job-text); }
+  .badge-hobby { background: var(--hobby); color: var(--hobby-text); }
+  .badge-life { background: var(--life); color: var(--life-text); }
+  .badge-general { background: var(--general); color: var(--general-text); }
+  .tag-mini {
+    background: var(--paper);
+    border: 1px solid var(--faint);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .link-date { font-size: 11px; color: #b5b0a8; margin-left: auto; }
+  .link-del {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px;
+  }
+  .link-del:hover { color: var(--accent); }
+  .link-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: auto;
+    margin-right: 20px;
+  }
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.35; }
+  .empty h3 { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--ink); margin-bottom: 6px; }
+  .empty p { font-size: 13px; }
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: #85c492;
+    border-top: 2px solid #62a870;
+    display: flex;
+    padding: 8px 0 16px;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #5a8a60;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 0;
+    transition: color 0.15s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  /* Sync bar */
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .sync-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--faint);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .sync-btn:hover { background: var(--faint); }
+  /* Settings */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--faint);
+    gap: 12px;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row label { font-size: 13px; font-weight: 500; flex: 1; }
+  .settings-row .settings-sub { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+  .settings-row input[type="text"] {
+    border: 1.5px solid var(--faint);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    width: 100%;
+    outline: none;
+    margin-top: 6px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 19px;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+  /* Spinner */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  /* Count badge */
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: white;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    margin-left: 4px;
+  }
+  .groq-hint { font-size: 11px; color: #b5b0a8; margin-top: 6px; }
+  /* Category manage modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 300;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-sheet {
+    background: var(--paper);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 36px;
+    width: 100%;
+    max-width: 430px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--faint);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .modal-cat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .modal-cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    border: 1px solid var(--faint);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .modal-cat-swatch {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .modal-cat-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .modal-cat-del {
+    background: none; border: none;
+    color: #ccc; font-size: 17px;
+    cursor: pointer; padding: 2px 4px;
+    line-height: 1;
+  }
+  .modal-cat-del:hover { color: var(--accent); }
+  .modal-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .modal-add-row input {
+    flex: 1;
+    border: 1.5px solid var(--faint);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: var(--white);
+    color: var(--ink);
+    outline: none;
+  }
+  .modal-add-row input::placeholder { color: #b5b0a8; }
+  .modal-add-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cat-manage-btn {
+    background: none;
+    border: 1.5px dashed var(--faint);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cat-manage-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .link-thumb {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: block;
+    background: var(--faint);
+  }
+  .link-thumb-wrap { margin-bottom: 10px; }
+  .link-thumb-placeholder {
+    width: 100%;
+    height: 80px;
+    border-radius: 8px;
+    background: var(--faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Pantry</h1>
+  <span class="header-sub" id="total-count">0 links</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('add')">＋ Add</button>
+  <button class="tab" onclick="showTab('library')">📚 Library</button>
+</div>
+
+<!-- ADD TAB -->
+<div id="tab-add" class="panel active">
+  <div class="url-input-wrap">
+    <label>URL</label>
+    <input type="url" id="url-input" placeholder="https://..." oninput="onUrlInput()">
+  </div>
+
+  <div id="ai-block" class="ai-block" style="display:none">
+    <div class="ai-label">✦ AI enriched</div>
+    <div class="ai-title" id="ai-title"></div>
+    <div class="ai-summary" id="ai-summary"></div>
+    <div class="ai-suggest" id="ai-suggestions"></div>
+  </div>
+
+  <div class="url-input-wrap">
+    <label>Title</label>
+    <input type="text" id="title-input" placeholder="Auto-filled or type manually">
+  </div>
+
+  <div class="url-input-wrap">
+    <label>Note (optional)</label>
+    <textarea id="note-input" rows="2" placeholder="Why are you saving this?"></textarea>
+  </div>
+
+  <div style="margin-bottom:12px">
+    <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.6px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      Category
+      <button class="cat-manage-btn" onclick="openCatModal()">＋ manage</button>
+    </div>
+    <div class="cat-row" id="cat-row"></div>
+  </div>
+
+  <div class="url-input-wrap" style="margin-bottom:12px">
+    <label>Tags (optional)</label>
+    <div class="tag-input-wrap">
+      <input type="text" id="tag-input" placeholder="Type and press Enter..." onkeydown="handleTagInput(event)">
+    </div>
+    <div class="tag-list" id="tag-list"></div>
+    <div class="groq-hint">Tags: comma-separated or press Enter</div>
+  </div>
+
+  <div style="display:flex;gap:8px">
+    <button class="btn-secondary" id="ai-btn" onclick="enrichWithAI()" style="flex:none">
+      ✦ Enrich
+    </button>
+    <button class="btn-primary" onclick="saveLink()" id="save-btn">
+      Save Link
+    </button>
+  </div>
+</div>
+
+<!-- LIBRARY TAB -->
+<div id="tab-library" class="panel">
+  <div class="sync-bar">
+    <span id="sync-status">↕ Synced</span>
+    <button class="sync-btn" onclick="syncSheets()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sync
+    </button>
+  </div>
+
+  <div class="search-bar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search-input" placeholder="Search links, tags…" oninput="renderLibrary()">
+  </div>
+
+  <div class="filter-row" id="filter-row"></div>
+
+  <div id="library-list"></div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-add" onclick="showTab('add')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Add
+  </button>
+  <button class="nav-btn" id="nav-library" onclick="showTab('library')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    Library
+  </button>
+</div>
+
+<!-- Category manage modal -->
+<div class="modal-backdrop" id="cat-modal" onclick="closeCatModalIfBackdrop(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Manage Categories</div>
+    <div class="modal-cat-list" id="modal-cat-list"></div>
+    <div class="modal-add-row">
+      <input type="text" id="new-cat-input" placeholder="New category name…" onkeydown="if(event.key==='Enter')addCategory()">
+      <button class="modal-add-btn" onclick="addCategory()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Config (hardcoded) ───────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fllaaohuqvuylxpnoeql.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_AHCURQ7_x7l9pw_JrqbCtw_KWgNa2WO';
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbz0lOQe1GdVo6VSdQd94NyW6t1r9tW9aj3BxPCsjMcmrEdyDJHdgt_iKgZZY8iAWk0T4A/exec';
+const GROQ_PROXY_URL = `${SUPABASE_URL}/functions/v1/groq_proxy`;
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let links = JSON.parse(localStorage.getItem('ll_links') || '[]');
+let currentTags = [];
+let selectedCat = '';
+let activeFilter = 'all';
+let syncDebounce = null;
+
+const DEFAULT_CATS = [
+  { id: 'study', label: 'Study', emoji: '📖', color: '#e4f0ed', textColor: '#1a4a40', dot: '#1a4a40' },
+  { id: 'job',   label: 'Job',   emoji: '💼', color: '#e4eef8', textColor: '#1a3560', dot: '#1a3560' },
+  { id: 'hobby', label: 'Hobby', emoji: '🎨', color: '#ede9f5', textColor: '#3a2060', dot: '#3a2060' },
+  { id: 'life',  label: 'Life',  emoji: '🌿', color: '#fdeee4', textColor: '#5a2c10', dot: '#5a2c10' },
+  { id: 'general', label: 'General', emoji: '🔗', color: '#f0eeea', textColor: '#3a3530', dot: '#3a3530' },
+];
+
+const EXTRA_COLORS = [
+  { color: '#fde8f0', textColor: '#5a1030', dot: '#8a2040' },
+  { color: '#e8f4fd', textColor: '#0c3050', dot: '#1a5080' },
+  { color: '#fdf5e0', textColor: '#5a3c00', dot: '#8a5c00' },
+  { color: '#e8fde8', textColor: '#0c3020', dot: '#1a6030' },
+  { color: '#fde8e8', textColor: '#5a1010', dot: '#8a2020' },
+  { color: '#eee8fd', textColor: '#301060', dot: '#5020a0' },
+  { color: '#e8fdfa', textColor: '#0c3030', dot: '#1a6058' },
+  { color: '#fdf0e8', textColor: '#5a2c10', dot: '#8a4418' },
+];
+
+function loadCats() {
+  const saved = localStorage.getItem('ll_cats');
+  if (saved) return JSON.parse(saved);
+  localStorage.setItem('ll_cats', JSON.stringify(DEFAULT_CATS));
+  return DEFAULT_CATS;
+}
+let categories = loadCats();
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function init() {
+  renderCatChips();
+  renderFilterChips();
+  updateCounts();
+  renderLibrary();
+  pullFromSheets();
+}
+
+function showTab(t) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.querySelector(`.tab[onclick="showTab('${t}')"]`).classList.add('active');
+  document.getElementById('nav-' + t).classList.add('active');
+  if (t === 'library') renderLibrary();
+}
+
+// ─── Add Tab ──────────────────────────────────────────────────────────────────
+let urlDebounce = null;
+function onUrlInput() {
+  clearTimeout(urlDebounce);
+  document.getElementById('ai-block').style.display = 'none';
+  urlDebounce = setTimeout(() => {
+    const url = document.getElementById('url-input').value.trim();
+    if (url && url.startsWith('http')) tryFavicon(url);
+  }, 600);
+}
+
+function tryFavicon(url) {
+  try {
+    const domain = new URL(url).hostname;
+    if (!document.getElementById('title-input').value) {
+      document.getElementById('title-input').placeholder = domain;
+    }
+  } catch(e) {}
+}
+
+async function enrichWithAI() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) { toast('Paste a URL first'); return; }
+  const btn = document.getElementById('ai-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+
+  try {
+    let title = '', summary = '', suggestCat = '', suggestTags = [];
+
+    const catIds = categories.map(c => c.id).join('|');
+    const prompt = `Analyze this URL and respond ONLY with a JSON object (no markdown, no extra text):
+URL: ${url}
+
+Return: {"title":"page title guess from URL","summary":"2 sentence summary of what this page likely contains","category":"one of: ${catIds}","tags":["3","to","5","relevant","tags"]}`;
+
+    try {
+      const res = await fetch(GROQ_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 400,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content || '{}';
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+      title = parsed.title || '';
+      summary = parsed.summary || '';
+      suggestCat = parsed.category || '';
+      suggestTags = parsed.tags || [];
+    } catch(e) {
+      // Fallback: extract from URL
+      try {
+        const domain = new URL(url).hostname.replace('www.','');
+        const path = new URL(url).pathname.split('/').filter(Boolean).join(' › ');
+        title = path ? `${domain} › ${path}` : domain;
+        summary = `Link from ${domain}`;
+      } catch(e2) { title = url; }
+    }
+
+    if (title) document.getElementById('title-input').value = title;
+
+    document.getElementById('ai-title').textContent = title;
+    document.getElementById('ai-summary').textContent = summary || 'No summary available';
+    const sugWrap = document.getElementById('ai-suggestions');
+    sugWrap.innerHTML = '';
+
+    if (suggestCat) {
+      const catColors = { study:'badge-study', job:'badge-job', hobby:'badge-hobby', life:'badge-life', general:'badge-general' };
+      const s = document.createElement('span');
+      s.innerHTML = `Category: <button class="ai-cat-chip ${catColors[suggestCat]||''}" onclick="applyCatSuggestion('${suggestCat}')">${suggestCat}</button>`;
+      sugWrap.appendChild(s);
+    }
+    if (suggestTags.length) {
+      const t = document.createElement('div');
+      t.style.cssText = 'display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;align-items:center';
+      t.innerHTML = '<span style="font-size:11px;color:var(--muted)">Tags:</span>';
+      suggestTags.forEach(tag => {
+        const chip = document.createElement('button');
+        chip.className = 'ai-tag-chip';
+        chip.textContent = '+ ' + tag;
+        chip.onclick = () => { addTag(tag); chip.style.opacity = '0.4'; chip.disabled = true; };
+        t.appendChild(chip);
+      });
+      sugWrap.appendChild(t);
+    }
+
+    document.getElementById('ai-block').style.display = 'block';
+  } catch(e) {
+    toast('AI enrichment failed');
+  }
+  btn.disabled = false;
+  btn.textContent = '✦ Enrich';
+}
+
+function applyCatSuggestion(cat) {
+  const chip = document.querySelector(`.cat-chip[data-cat="${cat}"]`);
+  if (chip) selectCat(chip);
+}
+
+// ─── Category management ──────────────────────────────────────────────────────
+function saveCats() {
+  localStorage.setItem('ll_cats', JSON.stringify(categories));
+}
+
+function getCatById(id) {
+  return categories.find(c => c.id === id) || { label: id, emoji: '🔖', color: '#f0eeea', textColor: '#3a3530', dot: '#3a3530' };
+}
+
+function renderCatChips() {
+  const row = document.getElementById('cat-row');
+  if (!row) return;
+  row.innerHTML = categories.map(c => {
+    const isSel = selectedCat === c.id;
+    const bg = isSel ? c.color : '';
+    const col = isSel ? c.textColor : '';
+    const border = isSel ? c.color : '';
+    return `<button class="cat-chip${isSel ? ' sel-dyn' : ''}" data-cat="${c.id}" onclick="selectCatById('${c.id}')"
+      style="${isSel ? `background:${c.color};border-color:${c.color};color:${c.textColor}` : ''}"
+    >${c.emoji} ${c.label}</button>`;
+  }).join('');
+}
+
+function renderFilterChips() {
+  const row = document.getElementById('filter-row');
+  if (!row) return;
+  row.innerHTML = `<button class="filter-chip${activeFilter==='all'?' active':''}" data-filter="all" onclick="setFilter(this)">All</button>` +
+    categories.map(c =>
+      `<button class="filter-chip${activeFilter===c.id?' active':''}" data-filter="${c.id}" onclick="setFilter(this)">${c.emoji} ${c.label}</button>`
+    ).join('');
+}
+
+function selectCatById(id) {
+  selectedCat = selectedCat === id ? '' : id;
+  renderCatChips();
+}
+
+function selectCat(el) { selectCatById(el.dataset.cat); }
+
+function openCatModal() {
+  renderModalCatList();
+  document.getElementById('cat-modal').classList.add('open');
+}
+
+function closeCatModal() {
+  document.getElementById('cat-modal').classList.remove('open');
+  document.getElementById('new-cat-input').value = '';
+}
+
+function closeCatModalIfBackdrop(e) {
+  if (e.target === document.getElementById('cat-modal')) closeCatModal();
+}
+
+function renderModalCatList() {
+  const list = document.getElementById('modal-cat-list');
+  list.innerHTML = categories.map(c => `
+    <div class="modal-cat-row">
+      <span class="modal-cat-swatch" style="background:${c.dot}"></span>
+      <span class="modal-cat-name">${c.emoji} ${c.label}</span>
+      <button class="modal-cat-del" onclick="removeCategory('${c.id}')">×</button>
+    </div>`).join('');
+}
+
+function addCategory() {
+  const input = document.getElementById('new-cat-input');
+  const raw = input.value.trim();
+  if (!raw) return;
+  const id = raw.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  if (categories.find(c => c.id === id)) { toast('Category already exists'); return; }
+  const palette = EXTRA_COLORS[categories.length % EXTRA_COLORS.length];
+  const emojis = ['🗂️','⭐','🏷️','🔖','💡','🌐','🎯','📌'];
+  const emoji = emojis[categories.length % emojis.length];
+  categories.push({ id, label: raw, emoji, ...palette });
+  saveCats();
+  input.value = '';
+  renderModalCatList();
+  renderCatChips();
+  renderFilterChips();
+  toast(`✓ Added "${raw}"`);
+}
+
+function removeCategory(id) {
+  const cat = getCatById(id);
+  const inUse = links.filter(l => l.category === id).length;
+  if (inUse > 0) {
+    if (!confirm(`"${cat.label}" is used by ${inUse} link${inUse>1?'s':''}. Remove anyway? Those links will become "general".`)) return;
+    links.forEach(l => { if (l.category === id) l.category = 'general'; });
+    persist();
+  }
+  categories = categories.filter(c => c.id !== id);
+  if (selectedCat === id) selectedCat = '';
+  if (activeFilter === id) activeFilter = 'all';
+  saveCats();
+  renderModalCatList();
+  renderCatChips();
+  renderFilterChips();
+  renderLibrary();
+  toast(`Removed "${cat.label}"`);
+}
+
+function handleTagInput(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.replace(',','').trim();
+    if (val) addTag(val);
+    e.target.value = '';
+  }
+}
+
+function addTag(tag) {
+  tag = tag.toLowerCase().trim();
+  if (!tag || currentTags.includes(tag)) return;
+  currentTags.push(tag);
+  renderTags();
+}
+
+function removeTag(tag) {
+  currentTags = currentTags.filter(t => t !== tag);
+  renderTags();
+}
+
+function renderTags() {
+  const list = document.getElementById('tag-list');
+  list.innerHTML = '';
+  currentTags.forEach(t => {
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill';
+    pill.innerHTML = `${t}<span class="remove" onclick="removeTag('${t}')">×</span>`;
+    list.appendChild(pill);
+  });
+}
+
+async function saveLink() {
+  const url = document.getElementById('url-input').value.trim();
+  const title = document.getElementById('title-input').value.trim();
+  if (!url) { toast('Please enter a URL'); return; }
+  if (links.find(l => l.url === url)) { toast('Already saved!'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  // Try to fetch OG image
+  let ogImage = '';
+  try {
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const html = data.contents || '';
+    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    if (ogMatch) ogImage = ogMatch[1];
+    if (!ogImage) {
+      const twitterMatch = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+                        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+      if (twitterMatch) ogImage = twitterMatch[1];
+    }
+  } catch(e) {}
+
+  const link = {
+    id: Date.now(),
+    url,
+    title: title || url,
+    note: document.getElementById('note-input').value.trim(),
+    category: selectedCat || 'general',
+    tags: [...currentTags],
+    ogImage,
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  };
+
+  links.unshift(link);
+  persist();
+  resetAddForm();
+  toast('✓ Saved to library');
+  schedulePush();
+  btn.disabled = false;
+  btn.innerHTML = 'Save Link';
+}
+
+function resetAddForm() {
+  document.getElementById('url-input').value = '';
+  document.getElementById('title-input').value = '';
+  document.getElementById('note-input').value = '';
+  document.getElementById('tag-input').value = '';
+  document.getElementById('ai-block').style.display = 'none';
+  currentTags = [];
+  selectedCat = '';
+  renderCatChips();
+  renderTags();
+}
+
+// ─── Library ─────────────────────────────────────────────────────────────────
+function setFilter(el) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = el.dataset.filter;
+  renderLibrary();
+}
+
+function renderLibrary() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const list = document.getElementById('library-list');
+  if (!list) return;
+
+  let filtered = links;
+  if (activeFilter !== 'all') filtered = filtered.filter(l => l.category === activeFilter);
+  if (q) filtered = filtered.filter(l =>
+    l.title.toLowerCase().includes(q) ||
+    l.url.toLowerCase().includes(q) ||
+    (l.note||'').toLowerCase().includes(q) ||
+    (l.tags||[]).some(t => t.includes(q))
+  );
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">🔗</div>
+      <h3>${links.length === 0 ? 'No links yet' : 'Nothing found'}</h3>
+      <p>${links.length === 0 ? 'Save your first link from the Add tab' : 'Try a different search or filter'}</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(l => {
+    let domain = '';
+    try { domain = new URL(l.url).hostname.replace('www.',''); } catch(e) {}
+    const favUrl = domain ? `https://www.google.com/s2/favicons?sz=32&domain=${domain}` : '';
+    const initials = (l.title||'?').substring(0,1).toUpperCase();
+    const cat = getCatById(l.category || 'general');
+    const badgeStyle = `background:${cat.color};color:${cat.textColor}`;
+    const tagHtml = (l.tags||[]).slice(0,3).map(t => `<span class="tag-mini">${t}</span>`).join('');
+    const thumbHtml = l.ogImage
+      ? `<img class="link-thumb" src="${escHtml(l.ogImage)}" alt="" onerror="this.style.display='none'">`
+      : '';
+    return `<div class="link-card">
+      <button class="link-del" onclick="deleteLink(${l.id})">×</button>
+      ${thumbHtml}
+      <div class="link-card-top">
+        <div class="favicon-wrap">
+          ${favUrl ? `<img src="${favUrl}" onerror="this.parentNode.innerHTML='${initials}'" alt="">` : initials}
+        </div>
+        <div class="link-card-info">
+          <div class="link-card-title">${escHtml(l.title)}</div>
+          <div class="link-card-domain">${domain}</div>
+        </div>
+      </div>
+      ${l.note ? `<div class="link-card-note">${escHtml(l.note)}</div>` : ''}
+      <div class="link-card-footer">
+        <span class="cat-badge" style="${badgeStyle}">${cat.emoji} ${cat.label}</span>
+        ${tagHtml}
+        <a href="${escHtml(l.url)}" class="link-open" target="_blank">open ↗</a>
+        <span class="link-date">${l.date}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteLink(id) {
+  links = links.filter(l => l.id !== id);
+  persist();
+  renderLibrary();
+  schedulePush();
+}
+
+// ─── Sync ─────────────────────────────────────────────────────────────────────
+async function pullFromSheets() {
+  try {
+    document.getElementById('sync-status').textContent = '↓ Pulling…';
+    const res = await fetch(SYNC_URL);
+    const data = await res.json();
+    if (data.status === 'ok' && data.data?.length) {
+      const remote = data.data.map(r => ({
+        id: r.id, url: r.url, title: r.title,
+        note: r.note, category: r.category,
+        tags: tryParseJSON(r.tags, []),
+        ogImage: r.ogImage || '',
+        date: r.date
+      }));
+      const localIds = new Set(links.map(l => String(l.id)));
+      const merged = [...links];
+      remote.forEach(r => { if (!localIds.has(String(r.id))) merged.push(r); });
+      merged.sort((a,b) => b.id - a.id);
+      links = merged;
+      persist();
+      renderLibrary();
+    }
+    document.getElementById('sync-status').textContent = '↕ Synced';
+  } catch(e) {
+    document.getElementById('sync-status').textContent = '↕ Local';
+  }
+}
+
+async function syncSheets() {
+  document.getElementById('sync-status').textContent = '↑ Pushing…';
+  try {
+    await fetch(SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'push', links })
+    });
+    document.getElementById('sync-status').textContent = '↕ Synced';
+    toast('✓ Synced to Sheets');
+  } catch(e) {
+    document.getElementById('sync-status').textContent = '⚠ Sync failed';
+    toast('Sync failed');
+  }
+}
+
+function schedulePush() {
+  clearTimeout(syncDebounce);
+  syncDebounce = setTimeout(() => syncSheets(), 2000);
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+function persist() {
+  localStorage.setItem('ll_links', JSON.stringify(links));
+  updateCounts();
+}
+
+function updateCounts() {
+  const n = links.length;
+  document.getElementById('total-count').textContent = n + ' link' + (n !== 1 ? 's' : '');
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function tryParseJSON(s, def) {
+  try { return JSON.parse(s); } catch(e) { return def; }
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+init();
+</script>
+</body>
+</html>
